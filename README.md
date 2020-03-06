@@ -74,6 +74,7 @@ Not sure how to rectify if don't have root privileges.
 taxadb create -i taxadb_gb --dbname taxadb_gb --division gb --dbtype mysql --user root --password "" --fast
 
 This can take a while. Only use the --fast option with an empty, newly created database as it doesn't check.
+Seriously, hours. About 6 for the gb database.
 
 
 
@@ -171,15 +172,40 @@ select max(length(accession)) from accession;
 Change the column length before dumping ...
 
 ```
-mysql taxadb_gb -e "ALTER TABLE accession MODIFY accession VARCHAR(20)"
-mysqldump taxadb_gb | gzip > taxadb_gb.sql.gz
+MariaDB [taxadb_gb]> ALTER TABLE accession MODIFY accession VARCHAR(20);
+Query OK, 250187841 rows affected (1 hour 46 min 8.727 sec)
+Records: 250187841  Duplicates: 0  Warnings: 0
 ```
 
+```
+mysqldump taxadb_gb | gzip > taxadb_gb.sql.gz
+```
 
 or during dumping ...
 
 ```
 mysqldump taxadb_gb | sed 's/`accession` varchar(255)/`accession` varchar(20)/' | gzip > taxadb_gb.sql.gz
+```
+
+
+Should change this in the taxadb code
+
+
+
+
+
+So, not only does our cluster not support python3, it does not support mysql!
+
+Creating sqlite database.
+
+```
+taxadb create -i taxadb_gb --dbname taxadb_gb.sqlite --division gb --dbtype sqlite --fast
+```
+
+```
+module load sqlite
+
+sqlite3 /francislab/data1/refs/taxadb_gb.sqlite  "select a.accession, t1.ncbi_taxid, t1.tax_name, t1.lineage_level, t2.ncbi_taxid, t2.tax_name, t2.lineage_level, t3.ncbi_taxid, t3.tax_name, t3.lineage_level, t4.ncbi_taxid, t4.tax_name, t4.lineage_level, t5.ncbi_taxid, t5.tax_name, t5.lineage_level, t6.ncbi_taxid, t6.tax_name, t6.lineage_level from accession a join taxa t1 on t1.ncbi_taxid = a.taxid_id join taxa t2 on t2.ncbi_taxid = t1.parent_taxid join taxa t3 on t3.ncbi_taxid = t2.parent_taxid join taxa t4 on t4.ncbi_taxid = t3.parent_taxid join taxa t5 on t5.ncbi_taxid = t4.parent_taxid join taxa t6 on t6.ncbi_taxid = t5.parent_taxid where a.accession = 'NC_006273'"
 ```
 
 
