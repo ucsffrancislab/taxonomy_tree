@@ -209,5 +209,14 @@ sqlite3 /francislab/data1/refs/taxadb_gb.sqlite  "select a.accession, t1.ncbi_ta
 ```
 
 
+Download everything and then make a several databases with subsets of everything.
+In general, smaller databases search faster.
+```
+nohup taxadb download --outdir taxadb_full --type full -f &
 
+nohup taxadb create --dbtype sqlite --fast -i taxadb_full --dbname taxadb_gb.sqlite   --division gb &
+nohup taxadb create --dbtype sqlite --fast -i taxadb_full --dbname taxadb_nucl.sqlite --division nucl &
+nohup taxadb create --dbtype sqlite --fast -i taxadb_full --dbname taxadb_prot.sqlite --division prot &
+nohup taxadb create --dbtype sqlite --fast -i taxadb_full --dbname taxadb_full.sqlite --division full &
+```
 
